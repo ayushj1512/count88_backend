@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
+// Product item schema for each product in the order
 const productItemSchema = new mongoose.Schema({
   productId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
+    type: Number, // ✅ Supports numeric IDs like 1, 2, 3
     required: true,
   },
   name: String,
@@ -11,6 +11,7 @@ const productItemSchema = new mongoose.Schema({
   quantity: Number,
 }, { _id: false });
 
+// Shipping address schema
 const shippingSchema = new mongoose.Schema({
   houseNumber: { type: String, required: true },
   streetAddress: { type: String, required: true },
@@ -20,6 +21,7 @@ const shippingSchema = new mongoose.Schema({
   landmark: String,
 }, { _id: false });
 
+// Order schema
 const orderSchema = new mongoose.Schema({
   customerName: {
     type: String,
