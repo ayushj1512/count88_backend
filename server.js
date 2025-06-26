@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+
 // Load env variables
 dotenv.config();
 
@@ -10,6 +11,8 @@ dotenv.config();
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const queryRoutes = require('./routes/queryRoutes'); // 🆕 Added
+const blogRoutes = require("./routes/blogRoutes");
+
 
 const app = express();
 
@@ -42,6 +45,7 @@ connectDB();
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/queries', queryRoutes); // 🆕 Added
+app.use("/api/blogs", blogRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
