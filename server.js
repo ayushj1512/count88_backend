@@ -3,16 +3,16 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-
 // Load env variables
 dotenv.config();
 
 // Import routes
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const queryRoutes = require('./routes/queryRoutes'); // 🆕 Added
-const blogRoutes = require("./routes/blogRoutes");
-
+const queryRoutes = require('./routes/queryRoutes');
+const blogRoutes = require('./routes/blogRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const tagRoutes = require('./routes/tagRouter'); // ✅ Added
 
 const app = express();
 
@@ -20,7 +20,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check
+// Health check route
 app.get('/', (req, res) => {
   res.send('🚀 Craftra API is running...');
 });
@@ -44,8 +44,10 @@ connectDB();
 // API routes
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/queries', queryRoutes); // 🆕 Added
-app.use("/api/blogs", blogRoutes);
+app.use('/api/queries', queryRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/tags', tagRoutes); // ✅ Added
 
 // Start server
 const PORT = process.env.PORT || 5000;
