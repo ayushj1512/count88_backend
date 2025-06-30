@@ -1,4 +1,6 @@
 const Order = require('../models/Order');
+const { sendEmailNotification } = require('../utils/sendEmailNotification');
+const { generateOrderEmail } = require('../utils/emailTemplates');
 
 // Create new order
 exports.createOrder = async (req, res) => {
@@ -38,6 +40,39 @@ exports.createOrder = async (req, res) => {
     });
 
     const savedOrder = await order.save();
+
+    // 📩 Email notifications
+    const orderData = {
+      customerName,
+      customerEmail,
+      orderId: savedOrder._id.toString(),
+      items: products.map(p => ({
+        name: p.name,
+        quantity: p.quantity,
+        price: p.price,
+      })),
+      totalAmount,
+      shippingAddress,
+    };
+
+    const { subject, html } = generateOrderEmail(orderData);
+
+    // Send email to customer
+    await sendEmailNotification({
+      to: customerEmail,
+      subject,
+      text: '',
+      html,
+    });
+
+    // Send email to admin
+    await sendEmailNotification({
+      to: 'craftraco25@gmail.com',
+      subject: `📬 New Order Received - #${savedOrder._id.toString()}`,
+      text: '',
+      html,
+    });
+
     res.status(201).json(savedOrder);
   } catch (error) {
     console.error('Create order error:', error);

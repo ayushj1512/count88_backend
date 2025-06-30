@@ -2,6 +2,14 @@ const Product = require('../models/productModel');
 const cloudinary = require('../utils/cloudinary');
 const streamifier = require('streamifier');
 
+// Slug generator
+const generateSlug = (name) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+
 // Upload a single image to Cloudinary
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
@@ -68,9 +76,16 @@ const createProduct = async (req, res) => {
       public_id: r.public_id,
     }));
 
+    const slug = generateSlug(name);
+    const existing = await Product.findOne({ slug });
+    if (existing) {
+      return res.status(400).json({ error: 'Product with similar name already exists. Choose a unique name.' });
+    }
+
     const product = new Product({
       groupId,
       name,
+      slug,
       description,
       brand,
       category,
@@ -127,7 +142,7 @@ const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    // Handle new image uploads
+    // Handle image replacement
     if (req.files && req.files.length > 0) {
       for (let img of product.images) {
         if (img.public_id) {
@@ -143,7 +158,10 @@ const updateProduct = async (req, res) => {
     }
 
     if (groupId !== undefined) product.groupId = groupId;
-    if (name !== undefined) product.name = name;
+    if (name !== undefined) {
+      product.name = name;
+      product.slug = generateSlug(name); // Regenerate slug if name changes
+    }
     if (description !== undefined) product.description = description;
     if (brand !== undefined) product.brand = brand;
     if (category !== undefined) product.category = category;
