@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // Product item schema for each product in the order
 const productItemSchema = new mongoose.Schema({
   productId: {
-    type: Number, // ✅ Supports numeric IDs like 1, 2, 3
+    type: String, // supports MongoDB _id or groupId like "CAGC"
     required: true,
   },
   name: String,
