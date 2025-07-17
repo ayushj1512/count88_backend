@@ -13,7 +13,8 @@ const queryRoutes = require('./routes/queryRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const tagRoutes = require('./routes/tagRouter');
-const testEmailRoute = require('./routes/testEmail'); // ✅ Added
+const testEmailRoute = require('./routes/testEmail'); // ✅ Email test
+const pingRoute = require('./routes/pingRoute'); // ✅ Ping route added
 
 const app = express();
 
@@ -49,7 +50,8 @@ app.use('/api/queries', queryRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/tags', tagRoutes);
-app.use('/api', testEmailRoute); // ✅ Added route for testing email
+app.use('/api', testEmailRoute);
+app.use('/api/ping', pingRoute); // ✅ Ping route registered
 
 // Start server
 const PORT = process.env.PORT || 5000;
