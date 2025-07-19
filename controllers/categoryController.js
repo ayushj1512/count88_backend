@@ -60,8 +60,58 @@ const addSubcategoriesToCategory = async (req, res) => {
     }
 };
 
+// ✅ PUT /api/categories/:id/edit-name → Edit category name
+const editCategoryName = async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    if (!name) {
+        return res.status(400).json({ message: 'New category name is required' });
+    }
+
+    try {
+        const existing = await Category.findOne({ name });
+        if (existing && existing._id.toString() !== id) {
+            return res.status(409).json({ message: 'Another category with the same name already exists' });
+        }
+
+        const updated = await Category.findByIdAndUpdate(
+            id,
+            { name },
+            { new: true, runValidators: true }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        return res.status(200).json(updated);
+    } catch (error) {
+        return res.status(500).json({ message: 'Error updating category name', error: error.message });
+    }
+};
+
+// ✅ DELETE /api/categories/:id → Delete a category
+const deleteCategory = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deleted = await Category.findByIdAndDelete(id);
+
+        if (!deleted) {
+            return res.status(404).json({ message: 'Category not found' });
+        }
+
+        return res.status(200).json({ message: 'Category deleted successfully' });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error deleting category', error: error.message });
+    }
+};
+
 module.exports = {
     getAllCategories,
     createCategory,
     addSubcategoriesToCategory,
+    editCategoryName,
+    deleteCategory,
 };
