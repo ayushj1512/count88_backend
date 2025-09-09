@@ -24,7 +24,7 @@ app.use(express.json());
 
 // Health check
 app.get('/', (req, res) => {
-  res.send('🚀 Craftra API is running...');
+  res.send('🚀 Count88 API is running...');
 });
 
 // DB connection
