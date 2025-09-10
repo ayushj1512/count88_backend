@@ -67,7 +67,7 @@ exports.createOrder = async (req, res) => {
 
     // Send email to admin
     await sendEmailNotification({
-      to: 'craftraco25@gmail.com',
+      to: 'ayushjuneja999@gmail.com',
       subject: `📬 New Order Received - #${savedOrder._id.toString()}`,
       text: '',
       html,

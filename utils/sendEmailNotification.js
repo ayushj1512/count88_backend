@@ -17,7 +17,7 @@ const sendEmailNotification = async ({ to, subject, text, html }) => {
         console.log(`📤 Sending email to: ${to}`);
 
         await transporter.sendMail({
-            from: `"CRAFTЯA" <${process.env.MAIL_USER}>`,
+            from: `"COUNT88 <${process.env.MAIL_USER}>`,
             to,
             subject,
             text: text || '', // fallback empty text if only HTML provided
