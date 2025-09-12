@@ -9,19 +9,19 @@ const {
   updateOrderStatus,
 } = require('../controllers/orderController');
 
-// POST: Create a new order
+// ✅ Create a new order
 router.post('/', createOrder);
 
-// GET: All orders
+// ✅ Get all orders
 router.get('/', getAllOrders);
 
-// GET: Single order by ID
-router.get('/:id', getOrderById);
+// ✅ Get a single order by custom orderId (e.g., 00001)
+router.get('/:orderId', getOrderById);
 
-// DELETE: Delete an order
-router.delete('/:id', deleteOrder);
+// ✅ Delete an order by custom orderId
+router.delete('/:orderId', deleteOrder);
 
-// PATCH: Update order status only
-router.patch('/:id/status', updateOrderStatus);
+// ✅ Update order status by custom orderId
+router.patch('/:orderId/status', updateOrderStatus);
 
 module.exports = router;

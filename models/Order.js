@@ -23,6 +23,13 @@ const shippingSchema = new mongoose.Schema({
 
 // Order schema
 const orderSchema = new mongoose.Schema({
+  // ✅ Custom incremental orderId
+  orderId: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+
   customerName: {
     type: String,
     required: true,

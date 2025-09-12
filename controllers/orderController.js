@@ -1,6 +1,19 @@
 const Order = require('../models/Order');
+const Counter = require('../models/Counter'); // ✅ new counter model
 const { sendEmailNotification } = require('../utils/sendEmailNotification');
 const { generateOrderEmail } = require('../utils/emailTemplates');
+
+// Helper function to get next 5-digit orderId
+async function getNextOrderId() {
+  const counter = await Counter.findOneAndUpdate(
+    { name: 'orderId' },
+    { $inc: { value: 1 } },
+    { new: true, upsert: true }
+  );
+
+  // pad with leading zeros → 00001, 00002, etc.
+  return counter.value.toString().padStart(5, '0');
+}
 
 // Create new order
 exports.createOrder = async (req, res) => {
@@ -26,7 +39,11 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ error: 'No products provided' });
     }
 
+    // ✅ Generate new custom orderId
+    const newOrderId = await getNextOrderId();
+
     const order = new Order({
+      orderId: newOrderId,
       customerName,
       customerEmail,
       customerMobile,
@@ -45,7 +62,7 @@ exports.createOrder = async (req, res) => {
     const orderData = {
       customerName,
       customerEmail,
-      orderId: savedOrder._id.toString(),
+      orderId: savedOrder.orderId, // ✅ use custom orderId
       items: products.map(p => ({
         name: p.name,
         quantity: p.quantity,
@@ -68,7 +85,7 @@ exports.createOrder = async (req, res) => {
     // Send email to admin
     await sendEmailNotification({
       to: 'ayushjuneja999@gmail.com',
-      subject: `📬 New Order Received - #${savedOrder._id.toString()}`,
+      subject: `📬 New Order Received - #${savedOrder.orderId}`,
       text: '',
       html,
     });
@@ -91,10 +108,10 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// Get a single order by ID
+// Get a single order by orderId (not _id)
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findOne({ orderId: req.params.id }); // ✅ search by custom orderId
     if (!order) return res.status(404).json({ error: 'Order not found' });
     res.json(order);
   } catch (error) {
@@ -106,7 +123,7 @@ exports.getOrderById = async (req, res) => {
 // Delete an order
 exports.deleteOrder = async (req, res) => {
   try {
-    const deleted = await Order.findByIdAndDelete(req.params.id);
+    const deleted = await Order.findOneAndDelete({ orderId: req.params.id }); // ✅ by custom orderId
     if (!deleted) return res.status(404).json({ error: 'Order not found' });
     res.json({ message: 'Order deleted successfully' });
   } catch (error) {
@@ -124,7 +141,7 @@ exports.updateOrderStatus = async (req, res) => {
       return res.status(400).json({ error: 'Order status is required' });
     }
 
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findOne({ orderId: req.params.id }); // ✅ by custom orderId
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     order.orderStatus = status;
