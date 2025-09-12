@@ -1,6 +1,5 @@
 const Product = require('../models/productModel');
-const cloudinary = require('../utils/cloudinary');
-const streamifier = require('streamifier');
+const { v2: cloudinary } = require('cloudinary');
 
 // Slug generator
 const generateSlug = (name) =>
@@ -10,7 +9,7 @@ const generateSlug = (name) =>
     .trim()
     .replace(/\s+/g, '-');
 
-// Upload a single image to Cloudinary
+// Upload a single image to Cloudinary using buffer
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -20,13 +19,13 @@ const uploadToCloudinary = (buffer) => {
         else reject(error);
       }
     );
-    streamifier.createReadStream(buffer).pipe(stream);
+    stream.end(buffer); // multer buffer direct pass
   });
 };
 
 // Upload multiple images
 const uploadImages = async (files) => {
-  const uploads = files.map(file => uploadToCloudinary(file.buffer));
+  const uploads = files.map((file) => uploadToCloudinary(file.buffer));
   return await Promise.all(uploads);
 };
 
@@ -40,22 +39,39 @@ const createProduct = async (req, res) => {
       brand,
       category,
       subcategory,
+      gender,
+      material,
+      style,
       variants,
       tags,
-      isActive
+      isActive,
     } = req.body;
 
-    if (!groupId || !name || !brand || !category || !variants) {
+    if (!groupId || !name || !brand || !category || !variants || !gender) {
       return res.status(400).json({ error: 'Missing required fields.' });
     }
 
+    // Parse variants (only size allowed)
     let parsedVariants;
     try {
       parsedVariants = JSON.parse(variants);
+      if (!Array.isArray(parsedVariants) || parsedVariants.length === 0) {
+        return res
+          .status(400)
+          .json({ error: 'Variants must be a non-empty array.' });
+      }
+      for (const v of parsedVariants) {
+        if (!v.size) {
+          return res.status(400).json({ error: 'Each variant must have a size.' });
+        }
+      }
     } catch {
-      return res.status(400).json({ error: 'Invalid variants format. Must be JSON.' });
+      return res
+        .status(400)
+        .json({ error: 'Invalid variants format. Must be JSON.' });
     }
 
+    // Parse tags
     let parsedTags = [];
     if (tags) {
       try {
@@ -65,21 +81,26 @@ const createProduct = async (req, res) => {
       }
     }
 
+    // Images required
     const files = req.files || [];
     if (!files.length) {
       return res.status(400).json({ error: 'At least one image is required.' });
     }
 
+    // Upload images
     const results = await uploadImages(files);
-    const images = results.map(r => ({
+    const images = results.map((r) => ({
       url: r.secure_url,
       public_id: r.public_id,
     }));
 
+    // Unique slug
     const slug = generateSlug(name);
     const existing = await Product.findOne({ slug });
     if (existing) {
-      return res.status(400).json({ error: 'Product with similar name already exists. Choose a unique name.' });
+      return res.status(400).json({
+        error: 'Product with similar name already exists. Choose a unique name.',
+      });
     }
 
     const product = new Product({
@@ -90,6 +111,9 @@ const createProduct = async (req, res) => {
       brand,
       category,
       subcategory,
+      gender,
+      material,
+      style,
       variants: parsedVariants,
       tags: parsedTags,
       images,
@@ -134,24 +158,26 @@ const updateProduct = async (req, res) => {
       brand,
       category,
       subcategory,
+      gender,
+      material,
+      style,
       variants,
       tags,
-      isActive
+      isActive,
     } = req.body;
 
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    // Handle image replacement
+    // Replace images if new ones uploaded
     if (req.files && req.files.length > 0) {
       for (let img of product.images) {
         if (img.public_id) {
           await cloudinary.uploader.destroy(img.public_id);
         }
       }
-
       const results = await uploadImages(req.files);
-      product.images = results.map(r => ({
+      product.images = results.map((r) => ({
         url: r.secure_url,
         public_id: r.public_id,
       }));
@@ -160,18 +186,36 @@ const updateProduct = async (req, res) => {
     if (groupId !== undefined) product.groupId = groupId;
     if (name !== undefined) {
       product.name = name;
-      product.slug = generateSlug(name); // Regenerate slug if name changes
+      product.slug = generateSlug(name);
     }
     if (description !== undefined) product.description = description;
     if (brand !== undefined) product.brand = brand;
     if (category !== undefined) product.category = category;
     if (subcategory !== undefined) product.subcategory = subcategory;
+    if (gender !== undefined) product.gender = gender;
+    if (material !== undefined) product.material = material;
+    if (style !== undefined) product.style = style;
 
     if (variants !== undefined) {
       try {
-        product.variants = JSON.parse(variants);
+        const parsedVariants = JSON.parse(variants);
+        if (!Array.isArray(parsedVariants) || parsedVariants.length === 0) {
+          return res
+            .status(400)
+            .json({ error: 'Variants must be a non-empty array.' });
+        }
+        for (const v of parsedVariants) {
+          if (!v.size) {
+            return res
+              .status(400)
+              .json({ error: 'Each variant must have a size.' });
+          }
+        }
+        product.variants = parsedVariants;
       } catch {
-        return res.status(400).json({ error: 'Invalid variants format. Must be JSON.' });
+        return res
+          .status(400)
+          .json({ error: 'Invalid variants format. Must be JSON.' });
       }
     }
 
@@ -211,6 +255,7 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// @desc Get product by slug
 const getProductBySlug = async (req, res) => {
   try {
     const product = await Product.findOne({ slug: req.params.slug });

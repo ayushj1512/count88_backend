@@ -13,6 +13,8 @@ const queryRoutes = require('./routes/queryRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const tagRoutes = require('./routes/tagRouter');
+const collectionRoutes = require('./routes/collectionRoutes'); // ✅ Collection route added
+const couponRoutes = require('./routes/couponRoutes'); // ✅ Coupon route added
 const testEmailRoute = require('./routes/testEmail'); // ✅ Email test
 const pingRoute = require('./routes/pingRoute'); // ✅ Ping route added
 
@@ -50,6 +52,8 @@ app.use('/api/queries', queryRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/tags', tagRoutes);
+app.use('/api/collections', collectionRoutes); // ✅ Collections API registered
+app.use('/api/coupons', couponRoutes); // ✅ Coupons API registered
 app.use('/api', testEmailRoute);
 app.use('/api/ping', pingRoute); // ✅ Ping route registered
 

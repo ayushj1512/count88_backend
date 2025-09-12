@@ -1,10 +1,8 @@
 const mongoose = require('mongoose');
 
-// Variant schema
+// Variant schema (only footwear size)
 const variantSchema = new mongoose.Schema({
-  variant: { type: String, required: true },              // e.g., "2x2 foot"
-  mrp: { type: Number, required: true },
-  discountedPrice: { type: Number, required: true }
+  size: { type: String, required: true }   // e.g., "UK 8", "US 10"
 }, { _id: false });
 
 // Image schema
@@ -18,7 +16,7 @@ const productSchema = new mongoose.Schema({
   groupId: {
     type: String,
     required: true,
-    index: true // For grouping and fast filtering
+    index: true // For grouping & fast filtering
   },
 
   name: { type: String, required: true },
@@ -31,12 +29,21 @@ const productSchema = new mongoose.Schema({
 
   description: String,
   brand: { type: String, required: true },
-  category: { type: String, required: true },
-  subcategory: { type: String },
+  category: { type: String, required: true },   // e.g., "Footwear"
+  subcategory: { type: String },                // e.g., "Sneakers", "Sandals"
+
+  gender: { 
+    type: String, 
+    enum: ["Men", "Women", "Unisex", "Kids"], 
+    required: true 
+  },
+
+  material: { type: String },                   // e.g., "Leather", "Mesh"
+  style: { type: String },                      // e.g., "Casual", "Formal", "Sports"
 
   variants: {
     type: [variantSchema],
-    validate: [arr => arr.length > 0, 'At least one variant is required.']
+    validate: [arr => arr.length > 0, 'At least one variant (size) is required.']
   },
 
   images: {
@@ -46,7 +53,7 @@ const productSchema = new mongoose.Schema({
 
   tags: {
     type: [String],
-    default: [] // e.g., ["bestseller", "trending", "new"]
+    default: [] // e.g., ["bestseller", "new", "limited edition"]
   },
 
   isActive: { type: Boolean, default: true }
