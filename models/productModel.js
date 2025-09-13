@@ -38,8 +38,17 @@ const productSchema = new mongoose.Schema({
     required: true 
   },
 
-  material: { type: String },                   // e.g., "Leather", "Mesh"
-  style: { type: String },                      // e.g., "Casual", "Formal", "Sports"
+  // Pricing
+  price: { type: Number, required: true },
+  discountPrice: { 
+    type: Number, 
+    validate: {
+      validator: function (v) {
+        return v == null || v < this.price; // discount must be less than price
+      },
+      message: 'Discount price must be less than the original price'
+    }
+  },
 
   variants: {
     type: [variantSchema],

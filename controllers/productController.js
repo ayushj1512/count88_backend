@@ -1,5 +1,5 @@
 const Product = require('../models/productModel');
-const { v2: cloudinary } = require('cloudinary');
+const cloudinary = require('../utils/cloudinary'); // ✅ use configured cloudinary
 
 // Slug generator
 const generateSlug = (name) =>
@@ -40,14 +40,14 @@ const createProduct = async (req, res) => {
       category,
       subcategory,
       gender,
-      material,
-      style,
+      price,
+      discountPrice,
       variants,
       tags,
       isActive,
     } = req.body;
 
-    if (!groupId || !name || !brand || !category || !variants || !gender) {
+    if (!groupId || !name || !brand || !category || !variants || !gender || !price) {
       return res.status(400).json({ error: 'Missing required fields.' });
     }
 
@@ -56,9 +56,7 @@ const createProduct = async (req, res) => {
     try {
       parsedVariants = JSON.parse(variants);
       if (!Array.isArray(parsedVariants) || parsedVariants.length === 0) {
-        return res
-          .status(400)
-          .json({ error: 'Variants must be a non-empty array.' });
+        return res.status(400).json({ error: 'Variants must be a non-empty array.' });
       }
       for (const v of parsedVariants) {
         if (!v.size) {
@@ -66,9 +64,7 @@ const createProduct = async (req, res) => {
         }
       }
     } catch {
-      return res
-        .status(400)
-        .json({ error: 'Invalid variants format. Must be JSON.' });
+      return res.status(400).json({ error: 'Invalid variants format. Must be JSON.' });
     }
 
     // Parse tags
@@ -112,8 +108,8 @@ const createProduct = async (req, res) => {
       category,
       subcategory,
       gender,
-      material,
-      style,
+      price,
+      discountPrice,
       variants: parsedVariants,
       tags: parsedTags,
       images,
@@ -159,8 +155,8 @@ const updateProduct = async (req, res) => {
       category,
       subcategory,
       gender,
-      material,
-      style,
+      price,
+      discountPrice,
       variants,
       tags,
       isActive,
@@ -193,29 +189,23 @@ const updateProduct = async (req, res) => {
     if (category !== undefined) product.category = category;
     if (subcategory !== undefined) product.subcategory = subcategory;
     if (gender !== undefined) product.gender = gender;
-    if (material !== undefined) product.material = material;
-    if (style !== undefined) product.style = style;
+    if (price !== undefined) product.price = price;
+    if (discountPrice !== undefined) product.discountPrice = discountPrice;
 
     if (variants !== undefined) {
       try {
         const parsedVariants = JSON.parse(variants);
         if (!Array.isArray(parsedVariants) || parsedVariants.length === 0) {
-          return res
-            .status(400)
-            .json({ error: 'Variants must be a non-empty array.' });
+          return res.status(400).json({ error: 'Variants must be a non-empty array.' });
         }
         for (const v of parsedVariants) {
           if (!v.size) {
-            return res
-              .status(400)
-              .json({ error: 'Each variant must have a size.' });
+            return res.status(400).json({ error: 'Each variant must have a size.' });
           }
         }
         product.variants = parsedVariants;
       } catch {
-        return res
-          .status(400)
-          .json({ error: 'Invalid variants format. Must be JSON.' });
+        return res.status(400).json({ error: 'Invalid variants format. Must be JSON.' });
       }
     }
 
