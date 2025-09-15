@@ -1,46 +1,11 @@
-// models/Users.js
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    userId: {
-      type: String,
-      unique: true,
-      // ❌ remove required, since we auto-generate
-    },
-    name: {
-      type: String,
-      required: [true, "Name is required"],
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: [true, "Email is required"],
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-    phone: {
-      type: String,
-      trim: true,
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
-    },
-    image: {
-      type: String,
-      default: "",
-    },
-    resetToken: {
-      type: String,
-      default: null,
-    },
-    resetTokenExpiry: {
-      type: Date,
-      default: null,
-    },
+    userId: { type: String, unique: true },
+    name: { type: String, required: [true, "Name is required"], trim: true },
+    email: { type: String, required: [true, "Email is required"], unique: true, lowercase: true, trim: true },
+    password: { type: String, required: [true, "Password is required"], minlength: [6, "Password must be at least 6 characters"] },
   },
   { timestamps: true }
 );
@@ -51,12 +16,12 @@ userSchema.pre("save", async function (next) {
     try {
       const lastUser = await mongoose.models.User.findOne({}, {}, { sort: { createdAt: -1 } });
 
-      let nextId = 100001; // starting point
+      let nextId = 100001;
       if (lastUser && lastUser.userId) {
         nextId = parseInt(lastUser.userId, 10) + 1;
       }
 
-      this.userId = String(nextId).padStart(6, "0"); // ensures 6 digits
+      this.userId = String(nextId).padStart(6, "0");
     } catch (err) {
       return next(err);
     }
@@ -64,5 +29,6 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// 🔹 Prevent model overwrite issue in Next.js hot-reload
-export default mongoose.models.User || mongoose.model("User", userSchema);
+// ✅ Correct export for CommonJS
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+module.exports = User;
