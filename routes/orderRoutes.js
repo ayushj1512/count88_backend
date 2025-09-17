@@ -5,6 +5,7 @@ const {
   createOrder,
   getAllOrders,
   getOrderById,
+  getOrdersByUid,
   deleteOrder,
   updateOrderStatus,
 } = require('../controllers/orderController');
@@ -14,6 +15,9 @@ router.post('/', createOrder);
 
 // ✅ Get all orders
 router.get('/', getAllOrders);
+
+// ✅ Get orders by UID
+router.get('/user/:uid', getOrdersByUid);
 
 // ✅ Get a single order by custom orderId (e.g., 00001)
 router.get('/:orderId', getOrderById);

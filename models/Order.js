@@ -1,17 +1,21 @@
 const mongoose = require('mongoose');
 
-// Product item schema for each product in the order
+// Product item schema inside order (snapshot of product)
 const productItemSchema = new mongoose.Schema({
-  productId: {
-    type: String, // supports MongoDB _id or groupId like "CAGC"
-    required: true,
-  },
-  name: String,
+  productId: { type: String, required: true }, // ref to Product
+  name: { type: String, required: true },
+  brand: String,
+  category: String,
+  subcategory: String,
+  gender: { type: String, enum: ["Men", "Women", "Unisex", "Kids"] },
+  size: String, // Selected size
   price: Number,
+  discountPrice: Number,
   quantity: Number,
+  image: { url: String, public_id: String } // one main image for display
 }, { _id: false });
 
-// Shipping address schema
+// Shipping address
 const shippingSchema = new mongoose.Schema({
   houseNumber: { type: String, required: true },
   streetAddress: { type: String, required: true },
@@ -23,59 +27,23 @@ const shippingSchema = new mongoose.Schema({
 
 // Order schema
 const orderSchema = new mongoose.Schema({
-  // ✅ Custom incremental orderId
-  orderId: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-
-  customerName: {
-    type: String,
-    required: true,
-  },
-  customerEmail: {
-    type: String,
-    required: true,
-  },
-  customerMobile: {
-    type: String,
-    required: true,
-  },
+  uid: { type: String, required: true, index: true }, // Firebase UID
+  orderId: { type: String, unique: true, required: true },
+  customerName: { type: String, required: true },
+  customerEmail: { type: String, required: true },
+  customerMobile: { type: String, required: true },
   orderStatus: {
     type: String,
-    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned'],
+    enum: ['Pending','Processing','Shipped','Delivered','Cancelled','Returned'],
     default: 'Pending',
   },
-  products: {
-    type: [productItemSchema],
-    required: true,
-  },
-  totalProducts: {
-    type: Number,
-    required: true,
-  },
-  totalQuantity: {
-    type: Number,
-    required: true,
-  },
-  totalAmount: {
-    type: Number,
-    required: true,
-  },
-  shippingAmount: {
-    type: Number,
-    required: true,
-  },
-  shippingAddress: {
-    type: shippingSchema,
-    required: true,
-  },
-  paymentMethod: {
-    type: String,
-    enum: ['COD', 'UPI', 'Card', 'NetBanking'],
-    required: true,
-  },
+  products: { type: [productItemSchema], required: true },
+  totalProducts: { type: Number, required: true },
+  totalQuantity: { type: Number, required: true },
+  totalAmount: { type: Number, required: true },
+  shippingAmount: { type: Number, required: true },
+  shippingAddress: { type: shippingSchema, required: true },
+  paymentMethod: { type: String, enum: ['COD','UPI','Card','NetBanking'], required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);
