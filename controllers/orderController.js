@@ -106,7 +106,7 @@ exports.getOrdersByUid = async (req, res) => {
   try {
     const { uid } = req.params;
     const orders = await Order.find({ uid }).sort({ createdAt: -1 });
-    if (!orders.length) return res.status(404).json({ error: 'No orders found for this user' });
+    if (!orders.length) return res.status(201).json({ error: 'No orders found for this user' });
     res.json(orders);
   } catch (err) {
     console.error('Get orders by UID error:', err);
