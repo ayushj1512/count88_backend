@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Address = require('./Address'); // Import the Address model if needed
 
 // Product item schema inside order (snapshot of product)
 const productItemSchema = new mongoose.Schema({
@@ -15,8 +16,9 @@ const productItemSchema = new mongoose.Schema({
   image: { url: String, public_id: String } // one main image for display
 }, { _id: false });
 
-// Shipping address
+// Shipping address schema (reuse Address fields)
 const shippingSchema = new mongoose.Schema({
+  uid: { type: String, required: true }, // Firebase UID of the user
   houseNumber: { type: String, required: true },
   streetAddress: { type: String, required: true },
   city: { type: String, required: true },
@@ -42,7 +44,7 @@ const orderSchema = new mongoose.Schema({
   totalQuantity: { type: Number, required: true },
   totalAmount: { type: Number, required: true },
   shippingAmount: { type: Number, required: true },
-  shippingAddress: { type: shippingSchema, required: true },
+  shippingAddress: { type: shippingSchema, required: true }, // embedded address
   paymentMethod: { type: String, enum: ['COD','UPI','Card','NetBanking'], required: true },
 }, { timestamps: true });
 
